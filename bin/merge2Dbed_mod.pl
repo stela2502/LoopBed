@@ -21,7 +21,7 @@ use strict;
 use POSIX;
 use File::Basename;
 use LoopBed::DPlist;
-use stefans_libs::root;
+#use stefans_libs::root;
 
 sub printCMD {
 	print STDERR "\n\tmerge2Dbed.pl [options] <2D BED file1> <2D BED file2> [2D BED file3]...\n";
