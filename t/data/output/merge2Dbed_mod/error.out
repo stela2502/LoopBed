@@ -1,0 +1,17 @@
+created cmd log file 'merge2Dbed_mod.pl.13631.log'
+
+	File /home/med-sal/git_Projects/ongoing_work/t/data/EBF1.tiny.bed looks like a loop 2D BED file
+	File /home/med-sal/git_Projects/ongoing_work/t/data/IKZF1.tiny.bed looks like a loop 2D BED file
+	Treating files as loop 2D BED files
+
+	Merging resolution set to 15000 (default for loop files)
+
+reading file /home/med-sal/git_Projects/ongoing_work/t/data/EBF1.tiny.bed
+reading file /home/med-sal/git_Projects/ongoing_work/t/data/IKZF1.tiny.bed
+Files read
+	15 total features after merging
+
+Features	/home/med-sal/git_Projects/ongoing_work/t/data/EBF1.tiny.bed	/home/med-sal/git_Projects/ongoing_work/t/data/IKZF1.tiny.bed	Name
+6		X	/home/med-sal/git_Projects/ongoing_work/t/data/IKZF1.tiny.bed
+6	X		/home/med-sal/git_Projects/ongoing_work/t/data/EBF1.tiny.bed
+3	X	X	/home/med-sal/git_Projects/ongoing_work/t/data/EBF1.tiny.bed|/home/med-sal/git_Projects/ongoing_work/t/data/IKZF1.tiny.bed
