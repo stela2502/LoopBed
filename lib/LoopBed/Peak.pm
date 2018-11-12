@@ -143,7 +143,7 @@ sub asArray{
 }
 sub print{
 	my $self = shift;
-	return join("\t", $self->{'c'}, $self->{'s'}, $self->{'e'} );
+	return join("\t", $self->asArray() );
 }
 
 

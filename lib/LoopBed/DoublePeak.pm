@@ -59,6 +59,7 @@ use warnings;
 use List::Util qw[min max];
 
 use LoopBed::Peak;
+use LoopBed::AddCols;
 
 sub new {
 
@@ -77,13 +78,10 @@ sub new {
 		'p1' => $p1,
 		'p2' => $p2,
 		'membership' => $membership,
-		'addCols' => {},
+		'addCols' => LoopBed::AddCols->new($fname, $addCols),
 		'active' => 1,
 	};
 	
-	if ( defined $fname ) {
-		$self->{'addCols'} ->{$fname} = $addCols;
-	}
 	bless $self, $class if ( $class eq "LoopBed::DoublePeak" );
 
 	return $self;
@@ -108,15 +106,8 @@ sub add {
 		@{$self->{'membership'}}[$i] += @{$other->{'membership'}}[$i]
 	}
 	## now add the other information - simple sum is the only one I have implemented for now
-	foreach my $fname ( $self->unique( keys %{$self->{'addCols'}}, keys %{$other->{'addCols'}})) {
-		unless ( defined $self->{'addCols'}->{$fname} ){
-			$self->{'addCols'}->{$fname} = $other->{'addCols'}->{$fname};
-		}elsif ( defined $self->{'addCols'}->{$fname} and defined $other->{'addCols'}->{$fname} ) {
-			for (my $i = 0; $i <@{$self->{'addCols'}->{$fname}}; $i++ ){
-				@{$self->{'addCols'}->{$fname}}[$i] += @{$other->{'addCols'}->{$fname}}[$i]
-			}
-		}
-	}
+	$self->{'addCols'}->add( $other->{'addCols'});
+	
 	$other->{'active'} = 0;
 	#print "new me:".  $self->pchr()."\n";
 	return $self;
@@ -172,14 +163,10 @@ sub asArray{
 sub print {
 	my $self = shift;
 	my $r = join("\t", 
-	 $self->{'p1'}->print(), 
-	 $self->{'p2'}->print(),
-	 join("\t", @{$self->{'membership'}} ),
-	 join("\t", map{ 
-	 	if ( ref($self->{'addCols'}->{$_}) eq "ARRAY" ){
-	 		join("\t", map { $_ || 0 }  @{$self->{'addCols'}->{$_}})
-	 	}
-	 } sort keys %{$self->{'addCols'}} ) 
+	 $self->{'p1'}->asArray(), 
+	 $self->{'p2'}->asArray(),
+	 @{$self->{'membership'}} ,
+	 $self->{'addCols'}->asArray()  
 	);
 	$r =~s/\t\t/\t/g;
 	$r =~s/\t*$//;

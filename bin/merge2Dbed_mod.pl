@@ -145,11 +145,13 @@ my %toCombine =();
 $extraHeader = {};
 
 my @perFile;
+my $addInfoLengths = {};
+warn "Files read\n";
+
 for (my $i=0;$i<@intFiles;$i++) {
 	warn "reading file $intFiles[$i]\n";
 	push ( @perFile, read2Dbed($intFiles[$i],$i,$numFiles) );
 }
-warn "Files read\n";
 
 my $chr = {};
 foreach my $f ( @perFile ) {
@@ -157,6 +159,7 @@ foreach my $f ( @perFile ) {
 }
 
 my $bed = {};
+
 foreach my $c ( sort keys %$chr ) {		
 	#warn "processing chr $c\n";
 	$bed->{$c} = LoopBed::DPlist->new();
@@ -169,15 +172,18 @@ foreach my $c ( sort keys %$chr ) {
 	$bed->{$c}->internal_merge($minRes);
 }
 
+
 my %counts = ();
 my $c = 0;
 my %sets = ();
+
 
 foreach my $chr ( sort keys %$bed ) {
 	foreach my $dp ( @{$bed->{$chr}->{'data'}} ) {
 		my $memStr = $dp ->getMemStr();
 		$counts{$memStr}++;
 		$sets{$memStr} ||= [];
+		$dp->{'addCols'}->{counts} = $addInfoLengths;
 		push(@{$sets{$memStr}},$dp);
 		$c++;
 	}
@@ -186,8 +192,10 @@ foreach my $chr ( sort keys %$bed ) {
 open (OUT, ">debug.bed" ) or die $!;
 my $tmp;	
 print OUT "#merged=$c\tchr1\tstart1\tend1\t#chr2\tstart2\tend2\t" . join("\t", map {basename($_)." [n]"} @intFiles) ."\t", join("\t", map { $extraHeader->{$_} } sort keys %$extraHeader ),"\n";
+
+
 foreach my $c ( sort keys %$chr ) {		
-	print OUT join( "\n", map{ $_->print() } @{$bed->{$c}->{'data'}} )."\n";
+	print OUT join( "\n", map{$_->{'addCols'}->{counts} = $addInfoLengths; $_->print() } @{$bed->{$c}->{'data'}} )."\n";
 }
 close ( OUT );
 
@@ -290,12 +298,12 @@ sub read2Dbed {
 		my @line = split /\t/;
 		if ( $line[0] =~ /^#/ and scalar(@line) > 6 or ! ( $line[1] =~m/^\d+$/ )  ){
 			$extraHeader->{$fname} = join("\t",  map {$fname.": ".$line[$_]} 6..@line-1 );
-			$extra_length = scalar( @line )-7 ;
+			$extra_length = scalar( @line )-6 ;
 			$extra_length = 0 if $extra_length < 0;
 			next LINE;
 		}elsif ( scalar(@line) > 6 and  ! (defined $extraHeader->{$fname} ) ) {
 			$extraHeader->{$fname} = join("\t",  map {$fname.": info ". ($_ - 5)} 6..@line-1 );
-			$extra_length = scalar( @line )-7 ;
+			$extra_length = scalar( @line )-6 ;
 			$extra_length = 0 if $extra_length < 0;
 		}
 		my $p1 = LoopBed::Peak ->new( @line[0..2] );
@@ -303,9 +311,9 @@ sub read2Dbed {
 		my @membership = map{ 0 } 0..($numFiles-1);
 		$membership[$index] = 1;
 		my $dp;
-		
+		$addInfoLengths->{$fname} = $extra_length; ## global var needed to export data correctly!
 		## always put 'data' in! 
-		$dp = LoopBed::DoublePeak->new( $p1, $p2,\@membership, [@line[6..(6+$extra_length)]], $fname );
+		$dp = LoopBed::DoublePeak->new( $p1, $p2,\@membership, [@line[6..(6+$extra_length-1)]], $fname );
 		
 		$bed->{$dp->{'p1'}->{'c'} } ||= LoopBed::DPlist->new();
 		$bed->{$dp->{'p1'}->{'c'} } ->  add ( $dp, $minRes );	
