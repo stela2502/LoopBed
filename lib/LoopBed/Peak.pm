@@ -99,10 +99,14 @@ sub new {
 
 sub overlaps{
 	my ( $self, $other, $maxDist) = @_;
-	$maxDist ||= 0;
+	#$maxDist ||= 0;
+	Carp::confess ( "Min res has not been given to me! $maxDist") unless ( $maxDist );
+	
 	if ( $self->{'c'} eq $other->{'c'} ) {
 		return 1 if ( $self->{'s'} <= $other->{'e'}  and $self->{'e'} >= $other->{'s'} );
-		return 1 if ( abs($self->{'m'} - $other->{'m'} ) <= $maxDist );
+		if ( abs($self->{'m'} - $other->{'m'} ) <= $maxDist ){
+			return 1;
+		}
 	}
 	return 0;
 }

@@ -163,15 +163,17 @@ sub sortByStart {
 
 sub internal_merge{
 	my ( $self, $minRes, $iter) = @_;
-	$minRes ||= 0;
+	Carp::confess ( "Min res has not been given to me! $minRes") unless ( $minRes );
+	
 	$iter ||= 0;
 	$self->sortByStart();
 	LOOP: for ( my $i = 0; $i < @{$self->{'data'}} -1; $i ++ ){
 		next unless (  @{$self->{'data'}}[$i]->{'active'} );
 		for( my $a = $i+1; $a < @{$self->{'data'}}; $a++ ) {
 			next unless (  @{$self->{'data'}}[$a]->{'active'} );
-			if ( @{$self->{'data'}}[$i] -> overlaps ( @{$self->{'data'}}[$a]) ) {
-				 @{$self->{'data'}}[$i] -> add ( @{$self->{'data'}}[$a]) ;
+			if ( @{$self->{'data'}}[$i] -> overlaps ( @{$self->{'data'}}[$a], $minRes) ) {
+		 	#if ( @{$self->{'data'}}[$i] -> overlaps ( @{$self->{'data'}}[$a]) ) {
+				 @{$self->{'data'}}[$i] -> add ( @{$self->{'data'}}[$a] ) ;
 				 @{$self->{'data'}}[$a]->{'active'} = 0;
 			}elsif ( @{$self->{'data'}}[$i]->{'p1'}->{'e'} + $minRes < @{$self->{'data'}}[$a]->{'p1'}->{'e'} - $minRes )  {
 				## out of range

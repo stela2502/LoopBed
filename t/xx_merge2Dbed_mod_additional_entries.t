@@ -33,7 +33,7 @@ if (0) {
 
 my $cmd = "(cd $outpath && perl -I $plugin_path/../lib  $exec "
 
-  #   . " -res 0"
+     . " -res 1 "
   . join(" ", map{"$plugin_path/data/$_.bed" } qw(A B C D) )
 
   #. " -git_server " . $git_server

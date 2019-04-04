@@ -48,6 +48,8 @@ my $prefix = '';
 for (my $i=0;$i<@ARGV;$i++) {
 	if ($ARGV[$i] eq '-dist' or $ARGV[$i] eq '-res' or $ARGV[$i] eq '-window' or $ARGV[$i] eq '-superRes') {
 		$minRes = $ARGV[++$i];
+		$minRes ++ if ( $minRes == 0 );
+		
 	} elsif ($ARGV[$i] eq '-tad' or $ARGV[$i] eq '-TAD') {
 		$tadFlag = 1;
 		die "Sorry tad support is broken!\n";
@@ -63,6 +65,18 @@ for (my $i=0;$i<@ARGV;$i++) {
 	} else {
 		push(@intFiles, $ARGV[$i]);
 	}
+}
+
+unless ($minRes) {
+	if ($tadFlag) {
+		$minRes = 30000;
+		print STDERR "\n\tMerging resolution set to $minRes (default for TAD files)\n";
+	} else {
+		$minRes = 15000;
+		print STDERR "\n\tMerging resolution set to $minRes (default for loop files)\n";
+	}
+} else {
+	print STDERR "\n\tMerging resolution set to $minRes (user defined)\n";
 }
 
 my $cmd = basename($0);
@@ -122,17 +136,7 @@ if ($tadFlag == 1) {
 	die "sorry, tad support is broken\n";
 }
 
-if ($minRes eq '') {
-	if ($tadFlag) {
-		$minRes = 30000;
-		print STDERR "\n\tMerging resolution set to $minRes (default for TAD files)\n";
-	} else {
-		$minRes = 15000;
-		print STDERR "\n\tMerging resolution set to $minRes (default for loop files)\n";
-	}
-} else {
-	print STDERR "\n\tMerging resolution set to $minRes (user defined)\n";
-}
+
 print STDERR "\n";
 
 my %peaks = ();
@@ -150,7 +154,7 @@ warn "Files read\n";
 
 for (my $i=0;$i<@intFiles;$i++) {
 	warn "reading file $intFiles[$i]\n";
-	push ( @perFile, read2Dbed($intFiles[$i],$i,$numFiles) );
+	push ( @perFile, read2Dbed($intFiles[$i], $i, $numFiles, $minRes) );
 }
 
 my $chr = {};
@@ -281,7 +285,7 @@ sub openFile {
 }
 
 sub read2Dbed {
-	my ($file,$index,$numFiles) = @_;
+	my ($file,$index,$numFiles, $minRes) = @_;
 	my $bed = {};
 	my $c = 0;
 	
@@ -316,10 +320,10 @@ sub read2Dbed {
 		$dp = LoopBed::DoublePeak->new( $p1, $p2,\@membership, [@line[6..(6+$extra_length-1)]], $fname );
 		
 		$bed->{$dp->{'p1'}->{'c'} } ||= LoopBed::DPlist->new();
-		$bed->{$dp->{'p1'}->{'c'} } ->  add ( $dp, $minRes );	
+		$bed->{$dp->{'p1'}->{'c'} } ->  add ( $dp );	
 	}
 	foreach ( sort keys %$bed ) {
-		$bed->{$_} -> internal_merge()
+		$bed->{$_} -> internal_merge($minRes)
 	}
 	close $in;
 
